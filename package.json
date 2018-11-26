@@ -1,0 +1,27 @@
+{
+  "name": "blackjack-js",
+  "version": "1.0.0",
+  "description": "Online BlackJack ",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deisuke1234/Blackjack-JS.git"
+  },
+  "keywords": [
+    "Online",
+    "BlackJack"
+  ],
+  "author": "Chjun-chi Chiu, Perham Panbehchi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deisuke1234/Blackjack-JS/issues"
+  },
+  "homepage": "https://github.com/deisuke1234/Blackjack-JS#readme",
+  "devDependencies": {
+    "express": "^4.16.4",
+    "socket.io": "^2.1.1"
+  }
+}
