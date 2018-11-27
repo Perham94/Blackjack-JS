@@ -5,6 +5,8 @@ $(document).ready(function () {
     }
   });
   
+
+  
   function connect(userName) {
     const socket = io();
     let message = $('#m');
