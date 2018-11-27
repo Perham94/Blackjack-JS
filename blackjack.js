@@ -3,7 +3,7 @@ let suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
 let value = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
 let unicode = ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮', '🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾', '🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'];
 
- exports.createDeck = function (game,nrOfDecks = 6) {
+exports.createDeck = function (game, nrOfDecks = 6) {
     let k = 1;
     while (k <= nrOfDecks) {
         let c = 0;
@@ -22,17 +22,19 @@ let unicode = ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '
     }
 }
 
-exports.createPlayer = function (game, name, balance) {
-   
+exports.createPlayer = function (game, id, socketid, name, balance,active) {
+
     let player = {
+        id: id,
+        socketid: socketid,
         hand: [],
         score: 0,
         name: name,
         bet: 0,
         balance: balance,
-        active:false
+        active: active
     };
-    
+
     game.player.push(player);
 }
 
@@ -41,7 +43,7 @@ exports.createDealer = function (game) {
         hand: [],
         score: 0,
         name: "Dealer",
-        active:false
+        active: false
     };
     game.dealer = dealer;
 }
@@ -74,10 +76,10 @@ function calculateHand(cards) {
     cards.forEach(card => {
         score += card.value;
     })
-  checkAce(cards);
+    checkAce(cards);
     return score;
 }
- function checkAce(hand) {
+function checkAce(hand) {
     for (let i = 0; i < hand.length; i++) {
         if (hand.score > 21 && hand[i].value == 11) {
             hand.score -= 10;
@@ -88,45 +90,56 @@ function calculateHand(cards) {
 
 function earlyCondition(player) {
     if (player.score == 21) {
-        return console.log("Black Jack "  + player.name);
+        return console.log("Black Jack " + player.name);
     }
 }
 
-exports.hit = function (game,player) { 
-
-    game.player[0].hand.push(drawCard(game))
+exports.hit = function (game, player) {
+    let id;
+    for (let i = 0; i < game.player.length; i++) {
+        if (game.player[i].name === player) {
+            id = game.player[i].id;
+            break;
+        }
+    }
+    game.player[id].hand.push(drawCard(game))
 
 }
 
 
-function winingCondition(game,player,dealer) {
 
-if(game.player[0].score > game.dealer.score || game.player[0].score == 21){
 
-    console.log(game.player[0] + " Won!");
-}
+exports.stand = function (game) {
+ 
+    while (game.dealer.score <= 17 && game.dealer.score <= 21) {
+        game.dealer.hand.push(drawCard(game));
+        game.dealer.score = calculateHand(game.dealer.hand);
+    }
+    
+        winingCondition(game);
     
 }
+   
 
-exports.stand =  function (game,player){
 
-   if( game.player[0].active === true){
-       game
-   }
-    
+
+function winingCondition(game) {
+    for (let i = 0; i < game.player.length; i++) {
+        if (game.player[i].score > game.dealer.score || game.player[i].score == 21) {
+             console.log(game.player[i].name + " Won!");
+        }
+        else if (game.player[i].score == game.dealer.score) {
+            console.log("Draw!");
+        }
+        else if (game.player[i].score < game.dealer.score || game.player[i].score > 21){
+
+            console.log(game.player[i].name + " LOSER!");
+        }
+        
+    }
+
 }
 
 
 
-
-// createDeck();
-// shuffleDeck();
-// createDealer();
-// createPlayer("kalle", 5000);
-// createPlayer("Anka", 10000);
-// deal();
-
-// console.log(game.player[0].score);
-// console.log(game.player[1].score);
-// console.log(game.dealer.score);
 

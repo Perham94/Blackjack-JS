@@ -32,7 +32,7 @@ app.get('/', function (req, res) {
 app.use(express.static(__dirname));
 
 let userList = { users: [] };
-
+let id = 0;
 io.on('connection', function (socket) {
 
   let userName = '';
@@ -45,14 +45,9 @@ io.on('connection', function (socket) {
       sendUserList(userList);
       io.emit('chat message', socket.username + ' connected');
       console.log(socket.username + ' connected');
-      blackjack.createPlayer(game, userName, 1000);
-      if (game.active === false) {
-        activePlayers.push(userName);
-        game.active = true;
-        blackjack.deal(game);
-        enableButtons(socket);
-      }
-      showHand(game);
+      blackjack.createPlayer(game, id, socket.id, userName, 1000, true);
+      id++;
+
     }
   });
 
@@ -85,14 +80,46 @@ io.on('connection', function (socket) {
 
 
   // GAME 
-  
+  socket.on('newGame', function () {
+
+    if (game.active === false) {
+      // activePlayers.push({name:userName});
+      game.active = true;
+      blackjack.deal(game);
+      enableButtons(socket);
+    }
+    showHand(game);
+
+
+  });
+
   socket.on('hit', function (data) {
-    blackjack.hit(game, socket.userName);
+    blackjack.hit(game, socket.username);
     showHand(game);
   });
 
   socket.on('stand', function (data) {
+    // activePlayers.shift();
+    disableButtons();
+    let player = socket.username;
+    let id;
+    for (let i = 0; i < game.player.length; i++) {
+      if (game.player[i].name === player) {
+        game.player[i].active = false;
+        break;
+      }
+    }
+    let obj = game.player.find(function (element) {
+      return element.active
+    });
+    if (obj == undefined) {
 
+      blackjack.stand(game);
+      
+    }else{
+      io.to(`${obj.socketid}`).emit('enable');
+
+    }
   });
 
 
@@ -107,6 +134,9 @@ http.listen(port, function () {
 function sendUserList(userList) {
   io.emit('userList', userList);
 }
+function newGame() {
+
+}
 
 function showHand(game) {
   let showHand = {
@@ -117,6 +147,9 @@ function showHand(game) {
   io.emit("showHand", showHand);
 }
 
-function enableButtons(socket){
+function enableButtons(socket) {
   socket.emit("enable");
+}
+function disableButtons(socket) {
+  io.emit("disable");
 }
