@@ -10,6 +10,7 @@ process.on('uncaughtException', function (err) {
   console.error('uncaughtException', err.stack);
 
 });
+
 // GAME CODE
 let game = {
   player: [],
@@ -17,6 +18,7 @@ let game = {
   deck: [],
   active: false,
 };
+
 let activePlayers = [];
 
 blackjack.createDeck(game);
@@ -26,13 +28,21 @@ blackjack.createDealer(game);
 // console.log(game.dealer);
 
 // END
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/index.html');
+
+http.listen(port, function () {
+  console.log('listening on *: ' + port); // listen on port wait for client
 });
-app.use(express.static(__dirname));
+
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/index.html'); // Send Index.html to client
+});
+app.use(express.static(__dirname));//Make map public to client
+
+
 
 let userList = { users: [] };
 let id = 0;
+
 io.on('connection', function (socket) {
 
   let userName = '';
@@ -40,26 +50,30 @@ io.on('connection', function (socket) {
   socket.on('change_username', function (data) {
     {
       userName = data.username;
-      socket.username = userName;
       userList.users.push(userName);
       sendUserList(userList);
-      io.emit('chat message', socket.username + ' connected');
-      console.log(socket.username + ' connected');
-      blackjack.createPlayer(game, id, socket.id, userName, 1000, true);
+      io.emit('chat message', userName + ' connected');
+      console.log(userName + ' connected');
+      blackjack.createPlayer(game, id, socket.id, userName, 1000, false);
       id++;
-
     }
+
   });
+
+  function sendUserList(userList) {
+    io.emit('userList', userList);
+  }
+
 
   socket.on('typing', function () {
     socket.broadcast.emit('typing', {
-      username: socket.username
+      username: userName
     });
   });
 
   socket.on('done typing', function () {
     socket.broadcast.emit('done typing', {
-      username: socket.username
+      username: userName
     });
   });
 
@@ -69,39 +83,59 @@ io.on('connection', function (socket) {
       userList.users.splice(index, 1);
     }
     sendUserList(userList);
-    console.log(socket.username + ' user disconnected');
-    socket.username = '';
+    console.log(userName + ' user disconnected');
+
   });
 
   socket.on('chat message', function (msg) {
-    console.log(socket.username + ': ' + msg);
-    io.emit('chat message', socket.username + ': ' + msg);
+    // console.log(userName + ': ' + msg);
+    io.emit('chat message', userName + ': ' + msg);
   });
+
 
 
   // GAME 
   socket.on('newGame', function () {
 
-    if (game.active === false) {
-      // activePlayers.push({name:userName});
+    if (game.active === false && activePlayers.length>0) {
+      
+
+      for (let i = 0; i < game.player.length; i++) {
+        for (let n = 0; n < activePlayers.length; n++) {
+          if (game.player[i].name === activePlayers[n]) {
+            game.player[i].active = true;
+          }
+        }
+      }
+
       game.active = true;
       blackjack.deal(game);
+      disableButtons();
       enableButtons(socket);
+      showHand(game);
     }
-    showHand(game);
 
 
   });
+  socket.on('active', function () {
+    activePlayers.push(userName);
+    console.log(activePlayers);
+  });
+
+  socket.on('not active', function () {
+    let idx = activePlayers.indexOf(userName);
+    activePlayers.splice(idx, 1);
+  });
 
   socket.on('hit', function (data) {
-    blackjack.hit(game, socket.username);
+    blackjack.hit(game, userName);
     showHand(game);
   });
 
   socket.on('stand', function (data) {
-    // activePlayers.shift();
+
     disableButtons();
-    let player = socket.username;
+    let player = userName;
     let id;
     for (let i = 0; i < game.player.length; i++) {
       if (game.player[i].name === player) {
@@ -109,47 +143,34 @@ io.on('connection', function (socket) {
         break;
       }
     }
-    let obj = game.player.find(function (element) {
-      return element.active
+    let obj = game.player.find(function (player) {
+      return player.active
     });
+
     if (obj == undefined) {
-
       blackjack.stand(game);
-      
-    }else{
+      io.emit('enable newGame');
+      game.active= false;
+    } else {
       io.to(`${obj.socketid}`).emit('enable');
-
     }
   });
 
+  function showHand(game) {
+    let showHand = {
+      player: game.player,
+      dealer: game.dealer
+    }
 
-
-
-});
-
-http.listen(port, function () {
-  console.log('listening on *: ' + port);
-});
-
-function sendUserList(userList) {
-  io.emit('userList', userList);
-}
-function newGame() {
-
-}
-
-function showHand(game) {
-  let showHand = {
-    player: game.player,
-    dealer: game.dealer
+    io.emit("showHand", showHand);
   }
 
-  io.emit("showHand", showHand);
-}
+  function enableButtons(socket) {
+    socket.emit("enable");
+  }
+  function disableButtons() {
+    io.emit("disable");
+  }
 
-function enableButtons(socket) {
-  socket.emit("enable");
-}
-function disableButtons(socket) {
-  io.emit("disable");
-}
+});
+

@@ -1,9 +1,9 @@
 
-let suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
-let value = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
-let unicode = ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮', '🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾', '🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'];
 
 exports.createDeck = function (game, nrOfDecks = 6) {
+    let suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
+    let value = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
+    let unicode = ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮', '🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾', '🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'];
     let k = 1;
     while (k <= nrOfDecks) {
         let c = 0;
@@ -22,7 +22,7 @@ exports.createDeck = function (game, nrOfDecks = 6) {
     }
 }
 
-exports.createPlayer = function (game, id, socketid, name, balance,active) {
+exports.createPlayer = function (game, id, socketid, name, balance, active) {
 
     let player = {
         id: id,
@@ -61,11 +61,14 @@ function drawCard(game) {
 exports.deal = function (game) {
 
     for (let i = 0; i < game.player.length; i++) {
-        game.player[i].hand.push(drawCard(game));
-        game.player[i].hand.push(drawCard(game));
-        game.player[i].score = calculateHand(game.player[i].hand);
-        earlyCondition(game.player[i]);
+        if (game.player[i].active) {
+            game.player[i].hand.push(drawCard(game));
+            game.player[i].hand.push(drawCard(game));
+            game.player[i].score = calculateHand(game.player[i].hand);
+            earlyCondition(game.player[i]);
+        }
     }
+
     game.dealer.hand.push(drawCard(game));
     game.dealer.hand.push(drawCard(game));
     game.dealer.score = calculateHand(game.dealer.hand);
@@ -79,6 +82,7 @@ function calculateHand(cards) {
     checkAce(cards);
     return score;
 }
+
 function checkAce(hand) {
     for (let i = 0; i < hand.length; i++) {
         if (hand.score > 21 && hand[i].value == 11) {
@@ -107,39 +111,43 @@ exports.hit = function (game, player) {
 }
 
 
-
-
 exports.stand = function (game) {
- 
+
     while (game.dealer.score <= 17 && game.dealer.score <= 21) {
         game.dealer.hand.push(drawCard(game));
         game.dealer.score = calculateHand(game.dealer.hand);
     }
-    
-        winingCondition(game);
-    
+
+    winingCondition(game);
+    reset(game);
 }
-   
-
-
 
 function winingCondition(game) {
     for (let i = 0; i < game.player.length; i++) {
         if (game.player[i].score > game.dealer.score || game.player[i].score == 21) {
-             console.log(game.player[i].name + " Won!");
+            console.log(game.player[i].name + " Won!");
         }
         else if (game.player[i].score == game.dealer.score) {
             console.log("Draw!");
         }
-        else if (game.player[i].score < game.dealer.score || game.player[i].score > 21){
+        else if (game.player[i].score < game.dealer.score || game.player[i].score > 21) {
 
             console.log(game.player[i].name + " LOSER!");
         }
-        
     }
 
 }
 
+
+function reset(game) {
+
+    for (let i = 0; i < game.player.length; i++) {
+        game.player[i].hand = [];
+        game.player[i].score = 0;
+    }
+    game.dealer.hand = [];
+    game.dealer.score = 0;
+}
 
 
 

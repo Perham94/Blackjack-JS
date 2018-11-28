@@ -17,13 +17,16 @@ function connect(userName) {
   message.bind('keypress', function () {
     socket.emit('typing');
   });
+
   socket.on('typing', function (data) {
     $('#feedBack').html($('<li>').text(data.username + ' is typing'));
     $('#chat').scrollTop($('#messages').height());
   });
+
   socket.on('done typing', function (data) {
     $('#feedBack').html($('<li>').text());
   });
+
   $('form').submit(function () {
     socket.emit('done typing');
     socket.emit('chat message', $('#m').val());
@@ -37,10 +40,10 @@ function connect(userName) {
 
   });
 
-  socket.on('userList', function (user) {
+  socket.on('userList', function (userList) {
     $('#users').html('');
-    for (let i = 0; i < user.users.length; i++) {
-      $('#users').append($('<li>').text(user.users[i]));
+    for (let i = 0; i < userList.users.length; i++) {
+      $('#users').append($('<li>').text(userList.users[i]));
     }
   });
 
@@ -52,40 +55,63 @@ function connect(userName) {
 
     $("#outputAreaDealer").html("");
     $("#outputAreaDealer").append(dealer.name + ":");
+
     for (let i = 0; i < dealer.hand.length; i++) {
       $("#outputAreaDealer").append(dealer.hand[i].unicode);
     }
-    for (let l = 0; l < player.length; l++) {
 
-      $("#outputArea").append(player[l].name + ":");
-      for (let i = 0; i < player[l].hand.length; i++) {
-        $("#outputArea").append(player[l].hand[i].unicode);
+    for (let l = 0; l < player.length; l++) {
+      if (player[l].active) {
+        $("#outputArea").append(player[l].name + ":");
+        for (let i = 0; i < player[l].hand.length; i++) {
+          $("#outputArea").append(player[l].hand[i].unicode);
+        }
+        $("#outputArea").append("<br>");
+
       }
     }
-
 
   });
 
   socket.on("enable", function () {
     $("#hit").attr("disabled", false);
     $("#stand").attr("disabled", false);
-    $("#newGame").attr("disabled", true);
   });
+
+  socket.on("enable newGame", function () {
+    $("#newGame").prop("disabled", false);
+    $("#play").prop("disabled", false);
+  });
+
+
   socket.on("disable", function () {
     $("#hit").attr("disabled", true);
     $("#stand").attr("disabled", true);
-    $("#newGame").attr("disabled", true);
+    $("#newGame").prop("disabled", true);
+    $("#play").prop("disabled", true);
   });
 
   $("#hit").on("click", function () {
     socket.emit('hit');
-  })
+  });
 
   $("#stand").on("click", function () {
     $("#stand,#hit").attr("disabled", true);
     socket.emit('stand');
-  })
+  });
+
   $("#newGame").on("click", function () {
     socket.emit("newGame");
-  })
+  });
+
+  $("#play").on("change", function () {
+    if ($(this).prop("checked")) {
+      socket.emit('active');
+      $("#newGame").attr("disabled", false);
+
+    } else {
+      socket.emit('not active');
+      $("#newGame").attr("disabled", true);
+    }
+  });
 }
