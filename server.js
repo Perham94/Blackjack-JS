@@ -2,8 +2,8 @@ const app = require('express')();
 const express = require('express');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const blackjack = require('./blackjack.js');
 const port = 3000;
+const blackjack = require('./blackjack');
 
 
 process.on('uncaughtException', function (err) {
@@ -17,15 +17,14 @@ let game = {
   dealer: {},
   deck: [],
   active: false,
-};
+  winnerList: [],
 
+};
 let activePlayers = [];
 
 blackjack.createDeck(game);
 blackjack.shuffleDeck(game);
 blackjack.createDealer(game);
-
-// console.log(game.dealer);
 
 // END
 
@@ -36,7 +35,7 @@ http.listen(port, function () {
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html'); // Send Index.html to client
 });
-app.use(express.static(__dirname));//Make map public to client
+app.use(express.static(__dirname)); //Creates a communication handler between server and html client
 
 
 
@@ -48,7 +47,8 @@ io.on('connection', function (socket) {
   let userName = '';
   sendUserList(userList);
   socket.on('change_username', function (data) {
-    {
+    // console.log(userList.users.indexOf(userName));
+    if(userList.users.indexOf(data.username) === -1){
       userName = data.username;
       userList.users.push(userName);
       sendUserList(userList);
@@ -56,8 +56,12 @@ io.on('connection', function (socket) {
       console.log(userName + ' connected');
       blackjack.createPlayer(game, id, socket.id, userName, 1000, false);
       id++;
-    }
+    }else{
+      socket.emit("user already exist");
+      socket.disconnect(true);
+      // socketIOService.connect(SERVER_IP, {'force new connection': true});
 
+    }
   });
 
   function sendUserList(userList) {
@@ -97,8 +101,7 @@ io.on('connection', function (socket) {
   // GAME 
   socket.on('newGame', function () {
 
-    if (game.active === false && activePlayers.length>0) {
-      
+    if (game.active === false && activePlayers.length > 0) {
 
       for (let i = 0; i < game.player.length; i++) {
         for (let n = 0; n < activePlayers.length; n++) {
@@ -107,11 +110,11 @@ io.on('connection', function (socket) {
           }
         }
       }
-
+      let active = game.player.find(function(player){return player.active === true});
       game.active = true;
       blackjack.deal(game);
       disableButtons();
-      enableButtons(socket);
+      enableButtons(active.socketid);
       showHand(game);
     }
 
@@ -130,9 +133,52 @@ io.on('connection', function (socket) {
   socket.on('hit', function (data) {
     blackjack.hit(game, userName);
     showHand(game);
+    let player = game.player.find(function (player)
+     { return player.name == userName });
+    if (player.score > 21) {
+      stand();
+    }
   });
 
   socket.on('stand', function (data) {
+    stand();
+  });
+
+
+
+
+  function showHand(game) {
+    let showHand = {
+      player: game.player,
+      dealer: game.dealer
+    }
+    io.emit("showHand", showHand);
+  }
+
+
+
+  function enableButtons(socketid) {
+    io.to(`${socketid}`).emit('enable');
+  }
+  function disableButtons() {
+    io.emit("disable");
+  }
+
+  function winners(game) {
+    io.emit("won", game);
+  }
+
+  function reset(game) {
+
+    for (let i = 0; i < game.player.length; i++) {
+      game.player[i].hand = [];
+      game.player[i].score = 0;
+    }
+    game.dealer.hand = [];
+    game.dealer.score = 0;
+    game.winnerList = [];
+  }
+  function stand() {
 
     disableButtons();
     let player = userName;
@@ -147,30 +193,17 @@ io.on('connection', function (socket) {
       return player.active
     });
 
-    if (obj == undefined) {
+    if (obj == undefined) {//Game ends
       blackjack.stand(game);
+      showHand(game);
       io.emit('enable newGame');
-      game.active= false;
+      winners(game);
+      reset(game);
+      game.active = false;
     } else {
       io.to(`${obj.socketid}`).emit('enable');
     }
-  });
-
-  function showHand(game) {
-    let showHand = {
-      player: game.player,
-      dealer: game.dealer
-    }
-
-    io.emit("showHand", showHand);
   }
-
-  function enableButtons(socket) {
-    socket.emit("enable");
-  }
-  function disableButtons() {
-    io.emit("disable");
-  }
-
 });
+
 

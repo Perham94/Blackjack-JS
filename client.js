@@ -17,7 +17,10 @@ function connect(userName) {
   message.bind('keypress', function () {
     socket.emit('typing');
   });
-
+  socket.on('user already exist',function(){
+    alert("user already exist");
+    location.reload();
+  });
   socket.on('typing', function (data) {
     $('#feedBack').html($('<li>').text(data.username + ' is typing'));
     $('#chat').scrollTop($('#messages').height());
@@ -54,15 +57,15 @@ function connect(userName) {
     let dealer = data.dealer;
 
     $("#outputAreaDealer").html("");
-    $("#outputAreaDealer").append(dealer.name + ":");
+    $("#outputAreaDealer").append(dealer.name + " : " + " Score = " + dealer.score + " : ");
 
     for (let i = 0; i < dealer.hand.length; i++) {
       $("#outputAreaDealer").append(dealer.hand[i].unicode);
     }
 
     for (let l = 0; l < player.length; l++) {
-      if (player[l].active) {
-        $("#outputArea").append(player[l].name + ":");
+      if (player[l].hand.length>0) {
+        $("#outputArea").append(player[l].name + " : " + " Score = " + player[l].score + " : ");
         for (let i = 0; i < player[l].hand.length; i++) {
           $("#outputArea").append(player[l].hand[i].unicode);
         }
@@ -73,13 +76,17 @@ function connect(userName) {
 
   });
 
+
+
   socket.on("enable", function () {
     $("#hit").attr("disabled", false);
     $("#stand").attr("disabled", false);
   });
 
-  socket.on("enable newGame", function () {
-    $("#newGame").prop("disabled", false);
+  socket.on("enable newGame", function (data) {
+    if ($("#play").prop("checked")) {
+      $("#newGame").prop("disabled", false);
+    }
     $("#play").prop("disabled", false);
   });
 
@@ -97,12 +104,19 @@ function connect(userName) {
 
   $("#stand").on("click", function () {
     $("#stand,#hit").attr("disabled", true);
+
     socket.emit('stand');
+
   });
 
   $("#newGame").on("click", function () {
     socket.emit("newGame");
   });
+
+
+
+
+
 
   $("#play").on("change", function () {
     if ($(this).prop("checked")) {
@@ -112,6 +126,15 @@ function connect(userName) {
     } else {
       socket.emit('not active');
       $("#newGame").attr("disabled", true);
+    }
+  });
+
+
+  socket.on("won", function (game) {
+    $('#winnerArea').html('');
+    for (let i = 0; i < game.winnerList.length; i++) {
+      $("#winnerArea").append(game.winnerList[i]+"<br>");
+      
     }
   });
 }

@@ -64,32 +64,34 @@ exports.deal = function (game) {
         if (game.player[i].active) {
             game.player[i].hand.push(drawCard(game));
             game.player[i].hand.push(drawCard(game));
-            game.player[i].score = calculateHand(game.player[i].hand);
+            calculateHand(game.player[i]);
             earlyCondition(game.player[i]);
         }
     }
 
     game.dealer.hand.push(drawCard(game));
     game.dealer.hand.push(drawCard(game));
-    game.dealer.score = calculateHand(game.dealer.hand);
+    calculateHand(game.dealer);
 }
 
-function calculateHand(cards) {
+function calculateHand(player) {
     let score = 0;
-    cards.forEach(card => {
+
+    player.hand.forEach(card => {
         score += card.value;
     })
-    checkAce(cards);
-    return score;
+    player.score = score;
+    checkAce(player);
 }
 
-function checkAce(hand) {
-    for (let i = 0; i < hand.length; i++) {
-        if (hand.score > 21 && hand[i].value == 11) {
-            hand.score -= 10;
-            hand[i].value = 1;
+function checkAce(player) {
+    for (let i = 0; i < player.hand.length; i++) {
+        if (player.score > 21 && player.hand[i].value == 11) {
+            player.score -= 10;
+            player.hand[i].value = 1;
         }
     }
+
 }
 
 function earlyCondition(player) {
@@ -106,48 +108,50 @@ exports.hit = function (game, player) {
             break;
         }
     }
-    game.player[id].hand.push(drawCard(game))
+    game.player[id].hand.push(drawCard(game));
+    calculateHand(game.player[id]);
 
 }
 
 
 exports.stand = function (game) {
 
-    while (game.dealer.score <= 17 && game.dealer.score <= 21) {
+    while (game.dealer.score <= 17) {
         game.dealer.hand.push(drawCard(game));
-        game.dealer.score = calculateHand(game.dealer.hand);
+        calculateHand(game.dealer);
     }
 
     winingCondition(game);
-    reset(game);
+
 }
 
 function winingCondition(game) {
-    for (let i = 0; i < game.player.length; i++) {
-        if (game.player[i].score > game.dealer.score || game.player[i].score == 21) {
-            console.log(game.player[i].name + " Won!");
-        }
-        else if (game.player[i].score == game.dealer.score) {
-            console.log("Draw!");
-        }
-        else if (game.player[i].score < game.dealer.score || game.player[i].score > 21) {
 
-            console.log(game.player[i].name + " LOSER!");
+    for (let i = 0; i < game.player.length; i++) {
+        if (game.player[i].hand.length > 0) {
+            if (game.player[i].score > game.dealer.score && game.player[i].score <= 21 || game.dealer.score >21) {
+                game.winnerList.push(game.player[i].name + " Won!");
+            }
+            else if (game.player[i].score == game.dealer.score && game.player[i].score <= 21) {
+                game.winnerList.push(game.player[i].name + "Push!");
+            }
+            else if (game.player[i].score < game.dealer.score && game.dealer.score <= 21) {
+                game.winnerList.push("Dealer Wins! " + game.player[i].name + " Lose!");
+            }
+            else if (game.player[i].score > 21) {
+                game.winnerList.push(game.player[i].name + " Busted!");
+            }
+
         }
     }
+    if (game.dealer.score > 21) {
+        game.winnerList.push("Dealer Busted!");
 
+    }
 }
 
 
-function reset(game) {
 
-    for (let i = 0; i < game.player.length; i++) {
-        game.player[i].hand = [];
-        game.player[i].score = 0;
-    }
-    game.dealer.hand = [];
-    game.dealer.score = 0;
-}
 
 
 
