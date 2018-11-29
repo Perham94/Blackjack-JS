@@ -8,7 +8,6 @@ const blackjack = require('./blackjack');
 
 process.on('uncaughtException', function (err) {
   console.error('uncaughtException', err.stack);
-
 });
 
 // GAME CODE
@@ -144,6 +143,15 @@ io.on('connection', function (socket) {
     stand();
   });
 
+  socket.on('bet',function(data){
+
+    let player = game.player.find(function (player)
+     { return player.name == userName });
+
+     player.bet = data;
+     player.balance -= data;
+
+  });
 
 
 
@@ -192,6 +200,7 @@ io.on('connection', function (socket) {
     let obj = game.player.find(function (player) {
       return player.active
     });
+
 
     if (obj == undefined) {//Game ends
       blackjack.stand(game);

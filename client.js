@@ -30,7 +30,7 @@ function connect(userName) {
     $('#feedBack').html($('<li>').text());
   });
 
-  $('form').submit(function () {
+  $('#chat').submit(function () {
     socket.emit('done typing');
     socket.emit('chat message', $('#m').val());
     $('#m').val('');
@@ -76,6 +76,14 @@ function connect(userName) {
 
   });
 
+  $('#bet').submit(function () {
+   let regex = new RegExp('[0-9]');
+   if(regex.test($('#betInput').val())){
+    socket.emit('bet', $('#betInput').val());
+    $('#betInput').val('');
+   }else{ alert("Accepts numbers only!");$('#betInput').val('');}
+   return false;
+  });
 
 
   socket.on("enable", function () {
