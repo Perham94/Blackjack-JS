@@ -47,15 +47,19 @@ io.on('connection', function (socket) {
   sendUserList(userList);
   socket.on('change_username', function (data) {
     // console.log(userList.users.indexOf(userName));
-    if(userList.users.indexOf(data.username) === -1){
+    if (userList.users.indexOf(data.username) === -1) {
       userName = data.username;
       userList.users.push(userName);
       sendUserList(userList);
       io.emit('chat message', userName + ' connected');
       console.log(userName + ' connected');
       blackjack.createPlayer(game, id, socket.id, userName, 1000, false);
+      balance(game);
       id++;
-    }else{
+      if(game.active){
+      showHand(game);
+    }
+    } else {
       socket.emit("user already exist");
       socket.disconnect(true);
       // socketIOService.connect(SERVER_IP, {'force new connection': true});
@@ -91,7 +95,7 @@ io.on('connection', function (socket) {
   });
 
   socket.on('chat message', function (msg) {
-    // console.log(userName + ': ' + msg);
+     //console.log(userName + ': ' + msg);
     io.emit('chat message', userName + ': ' + msg);
   });
 
@@ -101,7 +105,7 @@ io.on('connection', function (socket) {
   socket.on('newGame', function () {
 
     if (game.active === false && activePlayers.length > 0) {
-
+      balance(game);
       for (let i = 0; i < game.player.length; i++) {
         for (let n = 0; n < activePlayers.length; n++) {
           if (game.player[i].name === activePlayers[n]) {
@@ -109,8 +113,9 @@ io.on('connection', function (socket) {
           }
         }
       }
-      let active = game.player.find(function(player){return player.active === true});
+      let active = game.player.find(function (player) { return player.active === true });
       game.active = true;
+      game.dealer.activ = false;
       blackjack.deal(game);
       disableButtons();
       enableButtons(active.socketid);
@@ -127,13 +132,13 @@ io.on('connection', function (socket) {
   socket.on('not active', function () {
     let idx = activePlayers.indexOf(userName);
     activePlayers.splice(idx, 1);
+    console.log(activePlayers);
   });
 
   socket.on('hit', function (data) {
     blackjack.hit(game, userName);
     showHand(game);
-    let player = game.player.find(function (player)
-     { return player.name == userName });
+    let player = game.player.find(function (player) { return player.name == userName });
     if (player.score > 21) {
       stand();
     }
@@ -141,29 +146,42 @@ io.on('connection', function (socket) {
 
   socket.on('stand', function (data) {
     stand();
+
   });
 
-  socket.on('bet',function(data){
+  socket.on('bet', function (betAmount) {
 
-    let player = game.player.find(function (player)
-     { return player.name == userName });
+    let player = game.player.find(function (player) { return player.name == userName });
 
-     player.bet = data;
-     player.balance -= data;
+    player.bet += parseInt(betAmount);
+    if (player.balance >= betAmount) {
+      player.balance -= betAmount;
+      balance(game);
+    }
 
   });
 
 
 
   function showHand(game) {
-    let showHand = {
-      player: game.player,
-      dealer: game.dealer
+    
+    if(game.dealer.active){
+      var showHand = {
+        player: game.player,
+        dealer: game.dealer
+      }
+    }else{
+      var showHand = {
+        player: game.player,
+        dealer: {name:"dealer",hand:[game.dealer.hand[0],{unicode:"<span class='cardBack'>🂠</span>",png:"/png/blue_back.png"}],
+      score:game.dealer.score}
+        
+      }
+    
     }
     io.emit("showHand", showHand);
   }
-
-
+function gameActive(){}
 
   function enableButtons(socketid) {
     io.to(`${socketid}`).emit('enable');
@@ -187,7 +205,7 @@ io.on('connection', function (socket) {
     game.winnerList = [];
   }
   function stand() {
-
+    
     disableButtons();
     let player = userName;
     let id;
@@ -203,16 +221,26 @@ io.on('connection', function (socket) {
 
 
     if (obj == undefined) {//Game ends
+      game.dealer.active=true;
       blackjack.stand(game);
       showHand(game);
       io.emit('enable newGame');
       winners(game);
       reset(game);
       game.active = false;
+      balance(game);
     } else {
       io.to(`${obj.socketid}`).emit('enable');
     }
   }
+
+  function balance(game) {
+    for(let i =0; i < game.player.length;i++){
+    io.to(`${game.player[i].socketid}`).emit('updateBalance',game.player[i].balance); 
+  } 
+  }
+
+
 });
 
 

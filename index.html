@@ -6,18 +6,22 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>BlackJack ONLINE COME PLAY</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" media="screen" href="style.css" />
 </head>
 
 <body>
-    <div id="outputAreaDealer">test</div>
-    <div id="outputArea">test</div>
+    <div id = gameArea>
+
+    <div id="outputAreaDealer">Dealer:</div>
+    <div id="outputArea">Player:</div>
+    <div id="balanceArea">0</div>
 
     <button id="newGame"  disabled="true" >New Game</button>
     <button id="hit" disabled="true">Hit</button>
     <button id="stand" disabled="true">Stand</button>
-    <form id="bet" action="">
-        <input id="betInput" autocomplete="off"  /><button>Bet</button>
+    <form id="bet" action="" >
+        <input id="betInput" autocomplete="off"/><button>Bet</button>
     </form>
 
     <div id="winnerArea">winnerArea</div>
@@ -32,16 +36,17 @@
         </ul>
         <ul id="feedBack"></ul>
     </div>
-    <form id="chat" action="">
-        <input id="m" autocomplete="off" autofocus="true" /><button>Send</button>
+    <form id="chatMsg" action="">
+        <input id="m" autocomplete="off" autofocus="true"/><button >Send</button>
     </form>
+    
     <div id="userList">
         <h2>Users</h2>
         <ul id="users"></ul>
     </div>
 
 
-
+</div>  
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="client.js"></script>

@@ -21,25 +21,20 @@ function connect(userName) {
     alert("user already exist");
     location.reload();
   });
+
   socket.on('typing', function (data) {
     $('#feedBack').html($('<li>').text(data.username + ' is typing'));
-    $('#chat').scrollTop($('#messages').height());
+    $('#chatMsg').scrollTop($('#messages').height());
   });
 
   socket.on('done typing', function (data) {
     $('#feedBack').html($('<li>').text());
   });
 
-  $('#chat').submit(function () {
-    socket.emit('done typing');
-    socket.emit('chat message', $('#m').val());
-    $('#m').val('');
-    return false;
-  });
-
+ 
   socket.on('chat message', function (msg) {
     $('#messages').append($('<li>').text(msg));
-    $('#chat').scrollTop($('#messages').height());
+    $('#chatMsg').scrollTop($('#messages').height());
 
   });
 
@@ -50,6 +45,12 @@ function connect(userName) {
     }
   });
 
+  socket.on('updateBalance',function(balance){
+    $("#balanceArea").html("");
+    $("#balanceArea").append(balance);
+
+  });
+
   // GAME
   socket.on("showHand", function (data) {
     $("#outputArea").html("");
@@ -57,33 +58,36 @@ function connect(userName) {
     let dealer = data.dealer;
 
     $("#outputAreaDealer").html("");
-    $("#outputAreaDealer").append(dealer.name + " : " + " Score = " + dealer.score + " : ");
+    let dealerHTML ="<p>"+dealer.name + " : " + " Score = " + dealer.score + " : </p>";
+    // $("#outputAreaDealer").append(text);
 
     for (let i = 0; i < dealer.hand.length; i++) {
-      $("#outputAreaDealer").append(dealer.hand[i].unicode);
+      let margin = 15 *i;
+      dealerHTML+="<img style='left:"+ margin+ "px' src='"+ dealer.hand[i].png+"'></img>";
     }
-
+    dealerHTML+="";
+    $("#outputAreaDealer").append(dealerHTML);
+    let h =$("#outputAreaDealer").find("span").height()+$("#outputAreaDealer").find("p").height();
+    $("#outputAreaDealer").height(h);
     for (let l = 0; l < player.length; l++) {
       if (player[l].hand.length>0) {
-        $("#outputArea").append(player[l].name + " : " + " Score = " + player[l].score + " : ");
+        let playerHTML="<p>"+ player[l].name + " : " + " Score = " + player[l].score + " : </p>";
+    
         for (let i = 0; i < player[l].hand.length; i++) {
-          $("#outputArea").append(player[l].hand[i].unicode);
+          let margin = 15 *i;
+          playerHTML+="<img style='left:"+ margin+ "px' src='"+ player[l].hand[i].png+"'></img>";
         }
-        $("#outputArea").append("<br>");
-
+    
+        playerHTML+="<br>";
+        $("#outputArea").append(playerHTML);
+        let h =$("#outputArea").find("span").height()+$("#outputArea").find("p").height();
+        $("#outputArea").height(h);
       }
     }
 
   });
 
-  $('#bet').submit(function () {
-   let regex = new RegExp('[0-9]');
-   if(regex.test($('#betInput').val())){
-    socket.emit('bet', $('#betInput').val());
-    $('#betInput').val('');
-   }else{ alert("Accepts numbers only!");$('#betInput').val('');}
-   return false;
-  });
+
 
 
   socket.on("enable", function () {
@@ -97,7 +101,6 @@ function connect(userName) {
     }
     $("#play").prop("disabled", false);
   });
-
 
   socket.on("disable", function () {
     $("#hit").attr("disabled", true);
@@ -121,10 +124,21 @@ function connect(userName) {
     socket.emit("newGame");
   });
 
-
-
-
-
+  $('#bet').submit(function () {
+    let regex = new RegExp('[0-9]');
+    if(regex.test($('#betInput').val())){
+     socket.emit('bet', $('#betInput').val());
+     $('#betInput').val('');
+    }else{ alert("Accepts numbers only!");$('#betInput').val('');}
+    return false;
+   });
+   
+   $('#chatMsg').submit(function () {
+    socket.emit('done typing');
+    socket.emit('chat message', $('#m').val());
+    $('#m').val('');
+    return false;
+  });
 
   $("#play").on("change", function () {
     if ($(this).prop("checked")) {
@@ -137,12 +151,12 @@ function connect(userName) {
     }
   });
 
-
   socket.on("won", function (game) {
     $('#winnerArea').html('');
     for (let i = 0; i < game.winnerList.length; i++) {
-      $("#winnerArea").append(game.winnerList[i]+"<br>");
-      
+      $("#winnerArea").append(game.winnerList[i]+"<br>");  
     }
   });
+
+
 }

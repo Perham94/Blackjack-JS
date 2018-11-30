@@ -5,5 +5,46 @@ span{
 .Hearts,.Diamonds{
     color:red;
 }
+.cardBack{
+    font-size: 100px;
+}
+p{
+    color: white;
+    margin: 0px;
+}
+img{
+    height: 100px;
+    position: absolute;
+}
+span{
+    position: absolute;
+    /* background-color: white; */
+    padding: 0px;
+ 
+  
+} 
+#outputAreaDealer{
+    position: relative;
+    border: solid black 5px;
+    
+}
+#outputArea{
+    position: relative;
+    border: solid black 5px;
+    height: 150px;
+}
 
 
+
+#gameArea {
+    width: 1920px;
+    height: 1080px;
+    background-image: url("blackjack.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+ }
+
+ ul #message li{
+
+    margin-left: 100%;
+}
