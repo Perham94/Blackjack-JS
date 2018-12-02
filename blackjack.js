@@ -16,7 +16,7 @@ exports.createDeck = function (game, nrOfDecks = 6) {
                 }
                 var card = {
                     suit: suits[i],
-                    value: v,
+                    value: value[n],
                     unicode: "class='" + suits[i] + "'>" + unicode[c],
                     png: "/png/" + v + suits[i][0]+".png"
                 };
@@ -93,13 +93,15 @@ function calculateHand(player) {
 
 function checkAce(player) {
     for (let i = 0; i < player.hand.length; i++) {
-        if (player.score > 21 && player.hand[i].value == 11) {
-            player.score -= 10;
+        if (player.hand[i].value == 11 &&  player.score > 21) {
+            
             player.hand[i].value = 1;
+            player.score -= 10;
+            break;
         }
     }
-
 }
+
 
 function earlyCondition(player) {
     if (player.score == 21) {

@@ -1,6 +1,3 @@
-span{
-    font-size: 100px;
-}
 
 .Hearts,.Diamonds{
     color:red;
@@ -13,21 +10,88 @@ p{
     margin: 0px;
 }
 img{
-    height: 100px;
+    height: 200px;
     position: absolute;
 }
 span{
     position: absolute;
     /* background-color: white; */
     padding: 0px;
- 
-  
+    font-size: 100px;
+
 } 
-#outputAreaDealer{
-    position: relative;
-    border: solid black 5px;
-    
+body{
+    color: white;
+    background-color: black;
 }
+
+/* Dealer area */
+#outputAreaDealer{
+    position: absolute;
+    margin-top: 5%;
+    margin-left: 29%;
+    margin-right: auto;
+    width: fit-content;    
+}
+
+#dealerScore{
+    position: relative;
+    float: left;
+    margin-right: 10px;
+    display: block;
+    font-size: 25px;
+    background-color: black;
+    border-radius: 10px;
+    padding: 1px;
+}
+#dealerHand{
+    position: relative;
+   display: block;
+   float: right;
+}
+
+/* Dealer area End */
+
+/* Player Area  */
+
+
+#player1Score,#player2Score,#player3Score{
+    position: relative;
+    float: left;
+    margin-right: 10px;
+    display: block;
+    font-size: 25px;
+    background-color: black;
+    border-radius: 10px;
+    padding: 1px;
+}
+
+
+#player1Hand,#player2Hand,#player3Hand{
+    position: relative;
+   display: block;
+   float: right;
+}
+
+#outputAreaPlayer1{
+    position: absolute;
+    margin-left: 10%;
+    margin-top: 40%;
+}
+#outputAreaPlayer2{   
+    position: absolute;
+    margin-left: 34%;
+    margin-top: 40%;
+   
+}
+#outputAreaPlayer3{  
+     position: absolute;
+    margin-left: 57%;
+    margin-top: 40%;
+ 
+}
+/* Player ARea End */
+
 #outputArea{
     position: relative;
     border: solid black 5px;
@@ -35,16 +99,90 @@ span{
 }
 
 
-
 #gameArea {
     width: 1920px;
     height: 1080px;
     background-image: url("blackjack.png");
     background-size: cover;
+    background-position: center center;
     background-repeat: no-repeat;
+    
+    position: absolute;
+ 
+    top: 0px;
+    left: 0px;
+    
+   
+
  }
 
- ul #message li{
 
-    margin-left: 100%;
+
+ /* Char Area */
+ #chatArea{
+    position: absolute;
+     margin-left: 76%;
+     margin-top: 18%;
+     display: block;
+     color: white;
+     height: 490px;
+     width: 455px;
+ }
+ #userList{
+     position: relative;
+     padding-bottom:5px; 
+ }
+ #users{
+     display: none;
+ }
+#chat{
+    position: relative;
+    width: 455px;
+    height: 500px;
+    
+}
+#messages{
+    overflow: auto;
+    position: relative;
+    display: block;
+    height: 91%;
+    width: 100%;
+   list-style: none;
+   padding: 0px;
+   margin: 0px;
+   /* padding-top: 50px; */
+}
+#feedBack{
+    position: relative;
+    display: block;
+    height: 9%;
+    font-style: italic;
+    font-weight: bold;
+    color: gold;
+    padding-left: 15px;
+    margin: 0px;
+
+
+}
+#chatMsg{
+    width: 100%;
+}
+#m{
+    z-index: 1000;
+    width: 80%;
+}
+#sendMsg{
+width: 20%;
+}
+/* Chat Area End */
+
+#buttons{
+    position: relative;
+    margin-left: 77%;
+    
+}
+
+#users{
+    
+    list-style: none;
 }
