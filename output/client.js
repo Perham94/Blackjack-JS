@@ -5,6 +5,8 @@ $(document).ready(function () {
   }
 });
 
+
+
 function connect(userName) {
   const socket = io();
   let message = $('#m');
@@ -33,6 +35,7 @@ function connect(userName) {
   socket.on('chat message', function (msg) {
     $('#messages').append($('<li>').text(msg));
     $('#messages').scrollTop($('#messages').prop("scrollHeight"));
+
   });
 
   socket.on('userList', function (userList) {
@@ -70,8 +73,13 @@ function connect(userName) {
     
     $("#dealerHand").append(dealerHTML);
 
+
+
     // let h =$("#outputAreaDealer").find("span").height()+$("#outputAreaDealer").find("p").height();
     // $("#outputAreaDealer").height(h);
+
+
+
 
     for (let l = 0; l < player.length; l++) {
       
@@ -95,13 +103,15 @@ function connect(userName) {
         // $("#outputArea").height(h);
       }
     }
+
   });
+
+
+
 
   socket.on("enable", function () {
     $("#hit").attr("disabled", false);
     $("#stand").attr("disabled", false);
-    $("#doubleDown").prop("disabled", false);
-    $("#surender").prop("disabled", false);
   });
 
   socket.on("enable newGame", function (data) {
@@ -116,8 +126,6 @@ function connect(userName) {
     $("#stand").attr("disabled", true);
     $("#newGame").prop("disabled", true);
     $("#play").prop("disabled", true);
-    $("#doubleDown").prop("disabled", true);
-    $("#surender").prop("disabled", true);
   });
 
   $("#hit").on("click", function () {
@@ -129,17 +137,6 @@ function connect(userName) {
 
     socket.emit('stand');
 
-  });
-
-
-  $("#surender").on("click",function(){
-
-  socket.emit("surrender");
-  });
-
-  $("#doubleDown").on("click",function(){
-
-socket.emit("doubleDown");
   });
 
   $("#newGame").on("click", function () {
@@ -166,6 +163,7 @@ socket.emit("doubleDown");
     if ($(this).prop("checked")) {
       socket.emit('active');
       $("#newGame").attr("disabled", false);
+
     } else {
       socket.emit('not active');
       $("#newGame").attr("disabled", true);

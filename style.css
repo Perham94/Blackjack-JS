@@ -44,17 +44,15 @@ body{
     border-radius: 10px;
     padding: 1px;
 }
+
 #dealerHand{
     position: relative;
    display: block;
    float: right;
 }
-
 /* Dealer area End */
 
 /* Player Area  */
-
-
 #player1Score,#player2Score,#player3Score{
     position: relative;
     float: left;
@@ -82,7 +80,6 @@ body{
     position: absolute;
     margin-left: 34%;
     margin-top: 40%;
-   
 }
 #outputAreaPlayer3{  
      position: absolute;
@@ -98,7 +95,6 @@ body{
     height: 150px;
 }
 
-
 #gameArea {
     width: 1920px;
     height: 1080px;
@@ -106,19 +102,12 @@ body{
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    
     position: absolute;
- 
     top: 0px;
     left: 0px;
-    
-   
-
  }
 
-
-
- /* Char Area */
+ /* Chat Area */
  #chatArea{
     position: absolute;
      margin-left: 76%;
@@ -150,7 +139,6 @@ body{
    list-style: none;
    padding: 0px;
    margin: 0px;
-   /* padding-top: 50px; */
 }
 #feedBack{
     position: relative;

@@ -1,0 +1,1 @@
+const minify=require("gulp-minify"),{src:src,dest:dest}=require("gulp"),uglify=require("gulp-uglify");exports.default=function(){return src("./*.js").pipe(minify()).pipe(dest("output/"))};
