@@ -125,20 +125,22 @@ exports.hit = function (game, player) {
 exports.stand = function (game, activePlayerAmount) {
     let areAllPlayersBusted = 0;
     let hasAllplayersSurended = 0;
+    
     for (let i = 0; i < game.player.length; i++) {
+     
         if (game.player[i].hand.length > 0) {
             if (game.player[i].score > 21) {
                 areAllPlayersBusted++;
             }
+    
             if(game.player[i].surended){
                 hasAllplayersSurended++;
             }
         }
     }
 
-    //TODO  
-
-    if (areAllPlayersBusted !== activePlayerAmount |***| hasAllplayersSurended!== activePlayerAmount) {
+   
+    if (areAllPlayersBusted !== activePlayerAmount && hasAllplayersSurended!== activePlayerAmount) {
         while (game.dealer.score < 17) {
             game.dealer.hand.push(drawCard(game));
             calculateHand(game.dealer);
@@ -158,7 +160,7 @@ exports.stand = function (game, activePlayerAmount) {
 function winingCondition(game) {
 
     for (let i = 0; i < game.player.length; i++) {
-        if (game.player[i].hand.length > 0) {
+        if (game.player[i].hand.length > 0 && game.player[i].surended != true) {
             if (game.dealer.score <= 21 && game.player[i].score > game.dealer.score && game.player[i].score <= 21) {
                 game.winnerList.push(game.player[i].name + " Won!");
                 game.player[i].balance += game.player[i].bet * 2;

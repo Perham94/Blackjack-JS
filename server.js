@@ -176,9 +176,8 @@ io.on('connection', function (socket) {
     let player = findPlayer(game, userName);
     player.bet = player.bet * 0.5;
     player.balance += player.bet;
+    player.bet =0;
     player.active = false;
-    player.hand = [];
-    player.score = 0;
     player.surended = true;
     stand();
     
