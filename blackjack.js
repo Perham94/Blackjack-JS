@@ -40,7 +40,7 @@ exports.createPlayer = function (game, id, socketid, name, balance, active) {
         bet: 0,
         balance: balance,
         active: active,
-        surended:false
+        surended: false
     };
 
     game.player.push(player);
@@ -125,22 +125,22 @@ exports.hit = function (game, player) {
 exports.stand = function (game, activePlayerAmount) {
     let areAllPlayersBusted = 0;
     let hasAllplayersSurended = 0;
-    
+
     for (let i = 0; i < game.player.length; i++) {
-     
+
         if (game.player[i].hand.length > 0) {
             if (game.player[i].score > 21) {
                 areAllPlayersBusted++;
             }
-    
-            if(game.player[i].surended){
+
+            if (game.player[i].surended) {
                 hasAllplayersSurended++;
             }
         }
     }
+    let bustedAndSureended = areAllPlayersBusted + hasAllplayersSurended;
 
-   
-    if (areAllPlayersBusted !== activePlayerAmount && hasAllplayersSurended!== activePlayerAmount) {
+    if (bustedAndSureended !== activePlayerAmount && areAllPlayersBusted !== activePlayerAmount && hasAllplayersSurended !== activePlayerAmount) {
         while (game.dealer.score < 17) {
             game.dealer.hand.push(drawCard(game));
             calculateHand(game.dealer);
