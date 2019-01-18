@@ -2,7 +2,7 @@ const app = require('express')();
 const express = require('express');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const port = 3000;
+const port = process.env.PORT;
 const blackjack = require('./blackjack');
 
 process.on('uncaughtException', function (err) {
