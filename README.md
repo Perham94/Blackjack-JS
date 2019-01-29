@@ -1,6 +1,6 @@
 # BlackJack-JS
 Online Black Jack with NodeJS and SocketIO
-Using visual studio code - liveshare extension working from the same computer commiting from one account.
+Using visual studio code - liveshare extension pair programming
 ## Author
 https://github.com/Xarczuz
 
