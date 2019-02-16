@@ -2,13 +2,12 @@ const app = require('express')();
 const express = require('express');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const port = process.env.PORT;
+const port = 3333;//process.env.PORT; för Herokuapp
 const blackjack = require('./blackjack');
 
 process.on('uncaughtException', function (err) {
   console.error('uncaughtException', err.stack);
 });
-
 
 // GAME CODE
 let game = {
@@ -37,23 +36,23 @@ app.get('/', function (req, res) {
 app.use(express.static(__dirname)); //Creates a communication handler between server and html client
 
 let userList = { users: [] };
-let id = 0;
+//let id = 0;
 
 io.on('connection', function (socket) {
 
-  let userName = '';
   sendUserList(userList);
   socket.on('change_username', function (data) {
     // console.log(userList.users.indexOf(userName));
     if (userList.users.indexOf(data.username) === -1) {
       userName = data.username;
+      socket.userName = data.username;
       userList.users.push(userName);
       sendUserList(userList);
       io.emit('chat message', userName + ' connected');
       console.log(userName + ' connected');
-      blackjack.createPlayer(game, id, socket.id, userName, 1000, false);
+      blackjack.createPlayer(game, 100, socket.id, userName, 1000, false);
       balance(game);
-      id++;
+      // id++;
       if (game.active) {
         showHand(game);
       }
@@ -72,45 +71,52 @@ io.on('connection', function (socket) {
 
   socket.on('typing', function () {
     socket.broadcast.emit('typing', {
-      username: userName
+      username: socket.userName
     });
   });
 
   socket.on('done typing', function () {
     socket.broadcast.emit('done typing', {
-      username: userName
+      username: socket.userName
     });
   });
 
   socket.on('disconnect', function () {
-    let index = userList.users.indexOf(userName);
+
+    let index = userList.users.indexOf(socket.userName);
     if (index > -1) {
       userList.users.splice(index, 1);
     }
     sendUserList(userList);
-    console.log(userName + ' user disconnected');
+    console.log(socket.userName + ' user disconnected');
 
   });
 
   socket.on('chat message', (msg) => {
-    //console.log(userName + ': ' + msg);
     let time = new Date();
     let hours = time.getHours();
     let minutes = time.getMinutes();
     if (minutes < 10) {
       minutes = "0" + minutes;
     }
-    io.emit('chat message', hours + ":" + minutes + " " + userName + ': ' + msg);
+    io.emit('chat message', hours + ":" + minutes + " " + socket.userName + ': ' + msg);
   });
 
   // GAME 
   socket.on('newGame', () => {
 
     if (game.active === false && activePlayers.length > 0) {
+
+      for (let i = 0; i < game.player.length; i++) {
+        game.player[i].active = false;
+      }
+
+
       balance(game);
       for (let i = 0; i < game.player.length; i++) {
         for (let n = 0; n < activePlayers.length; n++) {
           if (game.player[i].name === activePlayers[n]) {
+            game.player[i].id = n;
             game.player[i].active = true;
           }
         }
@@ -126,20 +132,25 @@ io.on('connection', function (socket) {
 
   });
   socket.on('active', () => {
-    activePlayers.push(userName);
-    console.log(activePlayers);
+
+    if (activePlayers.length < 3) {
+      activePlayers.push(socket.userName);
+    } else {
+      socket.emit('to many active players');
+    }
+    console.log('Active players: '+activePlayers);
   });
 
   socket.on('not active', () => {
-    let idx = activePlayers.indexOf(userName);
+    let idx = activePlayers.indexOf(socket.userName);
     activePlayers.splice(idx, 1);
-    console.log(activePlayers);
+    console.log('Active players: '+activePlayers);
   });
 
   socket.on('hit', function (data) {
-    blackjack.hit(game, userName);
+    blackjack.hit(game, socket.userName);
     showHand(game);
-    let player = findPlayer(game, userName);
+    let player = findPlayer(game, socket.userName);
     if (player.score > 21) {
       stand();
     }
@@ -150,7 +161,7 @@ io.on('connection', function (socket) {
   });
 
   socket.on('bet', function (betAmount) {
-    let player = findPlayer(game, userName);
+    let player = findPlayer(game, socket.userName);
     player.bet += parseInt(betAmount);
     if (player.balance >= betAmount) {
       player.balance -= betAmount;
@@ -159,28 +170,35 @@ io.on('connection', function (socket) {
   });
 
   socket.on('doubleDown', function (data) {
-    let player = findPlayer(game, userName);
+    let player = findPlayer(game, socket.userName);
 
     if (player.balance >= player.bet) {
       player.balance -= player.bet;
       player.bet = player.bet * 2;
-      blackjack.hit(game, userName);
+      blackjack.hit(game, socket.userName);
       showHand(game);
       stand();
     }
   });
 
-
-  socket.on('surrender',function(data){
-    
-    let player = findPlayer(game, userName);
+  socket.on('surrender', function (data) {
+    let player = findPlayer(game, socket.userName);
     player.bet = player.bet * 0.5;
     player.balance += player.bet;
-    player.bet =0;
+    player.bet = 0;
     player.active = false;
     player.surended = true;
     stand();
-    
+  });
+
+
+  socket.on('reset', function () {
+    disableButtons();
+    io.emit('enable newGame');
+    game.player = [];
+    game.active = false;
+    game.winnerList = [];
+    activePlayers = [];
   });
 
   function showHand(game) {
@@ -201,7 +219,6 @@ io.on('connection', function (socket) {
     }
     io.emit("showHand", showHand);
   }
-
 
   function enableButtons(socketid) {
     io.to(`${socketid}`).emit('enable');
@@ -226,11 +243,11 @@ io.on('connection', function (socket) {
     game.dealer.score = 0;
     game.winnerList = [];
   }
-  
+
   function stand() {
 
     disableButtons();
-    let player = userName;
+    let player = socket.userName;
     let id;
     for (let i = 0; i < game.player.length; i++) {
       if (game.player[i].name === player) {
@@ -242,7 +259,7 @@ io.on('connection', function (socket) {
 
     if (activePlayer == undefined) {//Game ends No active players
       game.dealer.active = true;
-      blackjack.stand(game,activePlayers.length);
+      blackjack.stand(game, activePlayers.length);
       showHand(game);
       io.emit('enable newGame');
       winners(game);
@@ -252,6 +269,7 @@ io.on('connection', function (socket) {
 
     } else {
       io.to(`${activePlayer.socketid}`).emit('enable');
+
     }
   }
 
@@ -260,10 +278,12 @@ io.on('connection', function (socket) {
       io.to(`${game.player[i].socketid}`).emit('updateBalance', game.player[i].balance);
     }
   }
+
   function findPlayer(game, player) {
-    return game.player.find(function (player) { return player.name == userName })
+    return game.player.find(function (player) { return player.name == socket.userName })
   }
   function findActivePlayer(game) {
     return game.player.find(function (player) { return player.active });
   }
+
 });

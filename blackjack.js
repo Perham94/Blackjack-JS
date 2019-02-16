@@ -1,6 +1,6 @@
 
 
-exports.createDeck = function (game, nrOfDecks = 6) {
+exports.createDeck = function (game, nrOfDecks = 10) {
     let suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
     let value = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
     let unicode = ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮', '🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾', '🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'];
@@ -113,7 +113,7 @@ exports.hit = function (game, player) {
     let id;
     for (let i = 0; i < game.player.length; i++) {
         if (game.player[i].name === player) {
-            id = game.player[i].id;
+            id = i;
             break;
         }
     }
@@ -139,7 +139,7 @@ exports.stand = function (game, activePlayerAmount) {
         }
     }
     let bustedAndSureended = areAllPlayersBusted + hasAllplayersSurended;
-
+    calculateHand(game.dealer);
     if (bustedAndSureended !== activePlayerAmount && areAllPlayersBusted !== activePlayerAmount && hasAllplayersSurended !== activePlayerAmount) {
         while (game.dealer.score < 17) {
             game.dealer.hand.push(drawCard(game));

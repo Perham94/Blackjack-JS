@@ -5,8 +5,6 @@ $(document).ready(function () {
   }
 });
 
-
-
 function connect(userName) {
   const socket = io();
   let message = $('#m');
@@ -17,7 +15,7 @@ function connect(userName) {
   message.bind('keypress', function () {
     socket.emit('typing');
   });
-  socket.on('user already exist',function(){
+  socket.on('user already exist', function () {
     alert("user already exist");
     location.reload();
   });
@@ -31,11 +29,9 @@ function connect(userName) {
     $('#feedBack').html($('<li>').text());
   });
 
- 
   socket.on('chat message', function (msg) {
     $('#messages').append($('<li>').text(msg));
     $('#messages').scrollTop($('#messages').prop("scrollHeight"));
-
   });
 
   socket.on('userList', function (userList) {
@@ -45,7 +41,7 @@ function connect(userName) {
     }
   });
 
-  socket.on('updateBalance',function(balance){
+  socket.on('updateBalance', function (balance) {
     $("#balanceArea").html("");
     $("#balanceArea").append(balance);
 
@@ -61,57 +57,51 @@ function connect(userName) {
     $("#dealerScore").text("");
     $("#dealerScore").text(dealer.score);
 
-    let dealerHTML ="";
-    // "<p>"+dealer.name + " : " + " Score = " + dealer.score + " : </p>";
-    // $("#outputAreaDealer").append(text);
+    let dealerHTML = "";
 
     for (let i = 0; i < dealer.hand.length; i++) {
-      let margin = 30 *i;
-      dealerHTML+="<img style='left:"+ margin+ "px' src='"+ dealer.hand[i].png+"'></img>";
+      let margin = 30 * i;
+      dealerHTML += "<img style='left:" + margin + "px' src='" + dealer.hand[i].png + "'></img>";
     }
-    // dealerHTML+="";
-    
+
     $("#dealerHand").append(dealerHTML);
 
-
-
-    // let h =$("#outputAreaDealer").find("span").height()+$("#outputAreaDealer").find("p").height();
-    // $("#outputAreaDealer").height(h);
-
-
-
+    $("#player1Name").text("");
+    $("#player2Name").text("");
+    $("#player3Name").text("");
+    $("#player1Score").text("");
+    $("#player2Score").text("");
+    $("#player3Score").text("");
+    $("#player1Hand").html("");
+    $("#player2Hand").html("");
+    $("#player3Hand").html("");
 
     for (let l = 0; l < player.length; l++) {
-      
-      if (player[l].hand.length>0) {
-        let nr = l+1;
 
-        let score = $("#player"+nr+"Score");
+      if (player[l].hand.length > 0) {
+        let nr = player[l].id+1;
+        let name = $("#player" + nr + "Name");
+        let score = $("#player" + nr + "Score");
         score.text("");
-        let hand = $("#player"+nr+"Hand");
+        let hand = $("#player" + nr + "Hand");
         hand.html("");
-        let playerHTML="";
-        // "<p>"+ player[l].name + " : " + " Score = " + player[l].score + " : </p>";
-    score.text(player[l].score);
+        let playerHTML = "";
+        name.text(player[l].name);
+        score.text(player[l].score);
         for (let i = 0; i < player[l].hand.length; i++) {
-          let margin = 30 *i;
-          playerHTML+="<img style='left:"+ margin+ "px' src='"+ player[l].hand[i].png+"'></img>";
+          let margin = 30 * i;
+          playerHTML += "<img style='left:" + margin + "px' src='" + player[l].hand[i].png + "'></img>";
         }
-        // playerHTML+="<br>";
         hand.append(playerHTML);
-        // let h =$("#outputArea").find("span").height()+$("#outputArea").find("p").height();
-        // $("#outputArea").height(h);
       }
     }
-
   });
-
-
-
 
   socket.on("enable", function () {
     $("#hit").attr("disabled", false);
     $("#stand").attr("disabled", false);
+    $("#doubleDown").prop("disabled", false);
+    $("#surender").prop("disabled", false);
   });
 
   socket.on("enable newGame", function (data) {
@@ -126,7 +116,10 @@ function connect(userName) {
     $("#stand").attr("disabled", true);
     $("#newGame").prop("disabled", true);
     $("#play").prop("disabled", true);
+    $("#doubleDown").prop("disabled", true);
+    $("#surender").prop("disabled", true);
   });
+
 
   $("#hit").on("click", function () {
     socket.emit('hit');
@@ -134,36 +127,58 @@ function connect(userName) {
 
   $("#stand").on("click", function () {
     $("#stand,#hit").attr("disabled", true);
-
     socket.emit('stand');
+  });
 
+  $("#surender").on("click", function () {
+
+    socket.emit("surrender");
+  });
+
+  $("#doubleDown").on("click", function () {
+    socket.emit("doubleDown");
   });
 
   $("#newGame").on("click", function () {
     socket.emit("newGame");
   });
+  $("#reset").on("click", function () {
+    socket.emit("reset");
+    $("#hit").attr("disabled", true);
+    $("#stand").attr("disabled", true);
+    $("#newGame").prop("disabled", true);
+    $("#play").prop("disabled", true);
+    $("#doubleDown").prop("disabled", true);
+    $("#surender").prop("disabled", true);
+  });
 
   $('#bet').submit(function () {
-    let regex = new RegExp('[0-9]');
-    if(regex.test($('#betInput').val())){
-     socket.emit('bet', $('#betInput').val());
-     $('#betInput').val('');
-    }else{ alert("Accepts numbers only!");$('#betInput').val('');}
+    let regex = new RegExp('[0-9]+');
+    if (regex.test($('#betInput').val())) {
+      socket.emit('bet', $('#betInput').val());
+      $('#betInput').val('');
+    } else { alert("Accepts numbers only!"); $('#betInput').val(''); }
     return false;
-   });
-   
-   $('#chatMsg').submit(function () {
+  });
+
+  $('#chatMsg').submit(function () {
     socket.emit('done typing');
     socket.emit('chat message', $('#m').val());
     $('#m').val('');
     return false;
   });
 
+  socket.on("to many active players", function () {
+    if ($("#play").prop("checked")) {
+      $("#play").prop("checked",false);
+      $("#newGame").attr("disabled", true);
+    }
+  });
+//    if ($(this).prop("checked")) {
   $("#play").on("change", function () {
-    if ($(this).prop("checked")) {
+    if ($("#play").prop("checked")) {
       socket.emit('active');
       $("#newGame").attr("disabled", false);
-
     } else {
       socket.emit('not active');
       $("#newGame").attr("disabled", true);
@@ -173,7 +188,7 @@ function connect(userName) {
   socket.on("won", function (game) {
     $('#winnerArea').html('');
     for (let i = 0; i < game.winnerList.length; i++) {
-      $("#winnerArea").append(game.winnerList[i]+"<br>");  
+      $("#winnerArea").append(game.winnerList[i] + "<br>");
     }
   });
 

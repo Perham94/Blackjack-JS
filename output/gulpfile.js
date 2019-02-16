@@ -1,33 +1,33 @@
-// function defaultTask(cb) {
-//     // place code for your default task here
-//     cb();
-//   }
-  
-//   exports.default = defaultTask
-
-
-
-//   var gulp = require('gulp');
-// var uglify = require('gulp-uglify');
-// var pump = require('pump');
- 
-// gulp.task('compress', function (cb) {
-//   pump([
-//         gulp.src('/*.js'),
-//         uglify(),
-//         gulp.dest('/dest')
-//     ],
-//     cb
-//   );
-// });
-
-const minify = require('gulp-minify');
 const { src, dest } = require('gulp');
-// const babel = require('gulp-babel');
-const uglify = require('gulp-uglify');
+const minify = require('gulp-minify');
+const imagemin = require('gulp-imagemin');
+let cleanCSS = require('gulp-clean-css');
 
-exports.default = function() {
+
+function minifys() {
   return src('./*.js')
     .pipe(minify())
+    .pipe(dest('output/'))
+}
+
+exports.minifys = minifys;
+
+function minifyCSS() {
+  return src('./*.css').pipe(cleanCSS({ debug: true }, (details) => {
+    console.log(`${details.name}: ${details.stats.originalSize}`);
+    console.log(`${details.name}: ${details.stats.minifiedSize}`);
+  }))
     .pipe(dest('output/'));
 }
+
+exports.minifyCSS = minifyCSS;
+
+const htmlmin = require('gulp-htmlmin');
+function minifyHTML(){
+  return src('./*.html')
+    .pipe(htmlmin({ collapseWhitespace: true }))
+    .pipe(dest('output/'));
+}
+
+exports.minifyHTML = minifyHTML;
+

@@ -1,6 +1,6 @@
 
 
-exports.createDeck = function (game, nrOfDecks = 6) {
+exports.createDeck = function (game, nrOfDecks = 10) {
     let suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
     let value = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
     let unicode = ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮', '🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾', '🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'];
@@ -18,7 +18,7 @@ exports.createDeck = function (game, nrOfDecks = 6) {
                     suit: suits[i],
                     value: value[n],
                     unicode: "class='" + suits[i] + "'>" + unicode[c],
-                    png: "/png/" + v + suits[i][0]+".png"
+                    png: "/png/" + v + suits[i][0] + ".png"
                 };
                 game.deck.push(card);
                 c++;
@@ -39,7 +39,8 @@ exports.createPlayer = function (game, id, socketid, name, balance, active) {
         name: name,
         bet: 0,
         balance: balance,
-        active: active
+        active: active,
+        surended: false
     };
 
     game.player.push(player);
@@ -93,8 +94,7 @@ function calculateHand(player) {
 
 function checkAce(player) {
     for (let i = 0; i < player.hand.length; i++) {
-        if (player.hand[i].value == 11 &&  player.score > 21) {
-            
+        if (player.hand[i].value == 11 && player.score > 21) {
             player.hand[i].value = 1;
             player.score -= 10;
             break;
@@ -113,22 +113,40 @@ exports.hit = function (game, player) {
     let id;
     for (let i = 0; i < game.player.length; i++) {
         if (game.player[i].name === player) {
-            id = game.player[i].id;
-
+            id = i;
             break;
         }
     }
     game.player[id].hand.push(drawCard(game));
     calculateHand(game.player[id]);
-
-
 }
 
 
-exports.stand = function (game) {
+exports.stand = function (game, activePlayerAmount) {
+    let areAllPlayersBusted = 0;
+    let hasAllplayersSurended = 0;
 
-    while (game.dealer.score <= 17) {
-        game.dealer.hand.push(drawCard(game));
+    for (let i = 0; i < game.player.length; i++) {
+
+        if (game.player[i].hand.length > 0) {
+            if (game.player[i].score > 21) {
+                areAllPlayersBusted++;
+            }
+
+            if (game.player[i].surended) {
+                hasAllplayersSurended++;
+            }
+        }
+    }
+    let bustedAndSureended = areAllPlayersBusted + hasAllplayersSurended;
+    calculateHand(game.dealer);
+    if (bustedAndSureended !== activePlayerAmount && areAllPlayersBusted !== activePlayerAmount && hasAllplayersSurended !== activePlayerAmount) {
+        while (game.dealer.score < 17) {
+            game.dealer.hand.push(drawCard(game));
+            calculateHand(game.dealer);
+        }
+
+    } else {
         calculateHand(game.dealer);
     }
 
@@ -142,12 +160,12 @@ exports.stand = function (game) {
 function winingCondition(game) {
 
     for (let i = 0; i < game.player.length; i++) {
-        if (game.player[i].hand.length > 0) {
+        if (game.player[i].hand.length > 0 && game.player[i].surended != true) {
             if (game.dealer.score <= 21 && game.player[i].score > game.dealer.score && game.player[i].score <= 21) {
                 game.winnerList.push(game.player[i].name + " Won!");
                 game.player[i].balance += game.player[i].bet * 2;
             }
-            else if (game.dealer.score > 21 && game.player[i].score == game.dealer.score && game.player[i].score <= 21) {
+            else if (game.dealer.score <= 21 && game.player[i].score == game.dealer.score && game.player[i].score <= 21) {
                 game.winnerList.push(game.player[i].name + "Push!");
                 game.player[i].balance += game.player[i].bet
             }
@@ -161,6 +179,7 @@ function winingCondition(game) {
                 game.winnerList.push("Dealer Busted! " + game.player[i].name + " Wins!");
                 game.player[i].balance += game.player[i].bet * 2;
             }
+
             game.player[i].bet = 0;
             console.log(game.player[i].name + game.player[i].balance);
         }
